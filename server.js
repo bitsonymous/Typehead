@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const cors = require("cors");
+
 app.use(cors({
     origin: "*", // Allow all origins (for testing, change this in production)
     methods: ["GET", "POST"], // Specify allowed methods
