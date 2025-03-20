@@ -9,6 +9,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const cors = require("cors");
+app.use(cors({
+    origin: "*", // Allow all origins (for testing, change this in production)
+    methods: ["GET", "POST"], // Specify allowed methods
+    allowedHeaders: ["Content-Type"], // Specify allowed headers
+}));
+
 mongoose.connect(process.env.MONGO_URI, {})
   .then(async () => {
     console.log("✅ MongoDB Connected");
