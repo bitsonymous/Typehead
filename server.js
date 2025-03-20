@@ -6,16 +6,17 @@ const path = require("path");
 require("dotenv").config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
-
+// CORS configuration
 app.use(cors({
-    origin: "*", // Allow all origins (for testing, change this in production)
-    methods: ["GET", "POST"], // Specify allowed methods
-    allowedHeaders: ["Content-Type"], // Specify allowed headers
+    origin: process.env.ALLOWED_ORIGIN || "*", // Set ALLOWED_ORIGIN in your .env file for production
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
 }));
 
+app.use(express.json());
+
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {})
   .then(async () => {
     console.log("✅ MongoDB Connected");
@@ -23,27 +24,33 @@ mongoose.connect(process.env.MONGO_URI, {})
   })
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
+// Mongoose schema and model
 const wordSchema = new mongoose.Schema({ word: String });
 const Word = mongoose.model("Word", wordSchema);
 
+// Initialize Trie
 const trie = new Trie();
 
+// Load words into Trie
 async function loadWords() {
     try {
         const words = await Word.find();
         words.forEach(doc => trie.insert(doc.word.toLowerCase()));
-        console.log(`✅ Loaded ${words.length} words into Trie`);  // ✅ Fixed placement
+        console.log(`✅ Loaded ${words.length} words into Trie`);
     } catch (err) {
         console.error("❌ Error loading words:", err);
     }
 }
 
+// Serve the main page
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
+// Search endpoint
 app.get("/search", (req, res) => {
     const { query } = req.query;
     if (!query) return res.json([]);
@@ -51,6 +58,7 @@ app.get("/search", (req, res) => {
     res.json(suggestions);
 });
 
+// Add word endpoint
 app.post("/add-word", async (req, res) => {
     try {
         const { word } = req.body;
@@ -75,6 +83,7 @@ app.post("/add-word", async (req, res) => {
     }
 });
 
+// Recent words endpoint
 app.get("/recent-words", async (req, res) => {
     try {
         const recentWords = await Word.find().sort({ _id: -1 }).limit(5);
@@ -84,6 +93,7 @@ app.get("/recent-words", async (req, res) => {
     }
 });
 
+// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
