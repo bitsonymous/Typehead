@@ -1,66 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Typeahead Search</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
-        input { width: 300px; padding: 8px; font-size: 16px; margin-bottom: 10px; }
-        ul { list-style: none; padding: 0; margin-top: 5px; width: 310px; }
-        li { padding: 8px; cursor: pointer; border: 1px solid #ccc; background: #fff; }
-        li:hover { background: #f0f0f0; }
-        button { padding: 8px 12px; font-size: 14px; cursor: pointer; margin-top: 5px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typeahead Search</title>
+  <style>
+      body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
+      input { width: 300px; padding: 8px; font-size: 16px; margin-bottom: 10px; }
+      ul { list-style: none; padding: 0; margin-top: 5px; width: 310px; }
+      li { padding: 8px; cursor: pointer; border: 1px solid #ccc; background: #fff; }
+      li:hover { background: #f0f0f0; }
+      button { padding: 8px 12px; font-size: 14px; cursor: pointer; margin-top: 5px; }
+  </style>
 </head>
 <body>
-    <h2>Typeahead Autocomplete</h2>
-    <input type="text" id="search" placeholder="Type a word..." autocomplete="off">
-    <ul id="suggestions"></ul>
+  <h2>Typeahead Autocomplete</h2>
+  <input type="text" id="search" placeholder="Type a word..." autocomplete="off">
+  <ul id="suggestions"></ul>
 
-    <h3>Add a New Word</h3>
-    <input type="text" id="newWord" placeholder="Enter a word">
-    <button onclick="addWord()">Add Word</button>
-    <p id="status"></p>
+  <h3>Add a New Word</h3>
+  <input type="text" id="newWord" placeholder="Enter a word">
+  <button onclick="addWord()">Add Word</button>
+  <p id="status"></p>
 
-    <script>
-        document.getElementById("search").addEventListener("input", async function() {
-            let query = this.value.trim();
-            if (query.length === 0) {
-                document.getElementById("suggestions").innerHTML = "";
-                return;
-            }
+  <script>
+      // Use the current origin (e.g., https://your-app.onrender.com) for API calls.
+      const baseUrl = window.location.origin;
 
-            let response = await fetch(`http://localhost:3000/search?query=${query}`);
-            let suggestions = await response.json();
+      document.getElementById("search").addEventListener("input", async function() {
+          let query = this.value.trim();
+          if (query.length === 0) {
+              document.getElementById("suggestions").innerHTML = "";
+              return;
+          }
 
-            let list = document.getElementById("suggestions");
-            list.innerHTML = "";
-            suggestions.forEach(word => {
-                let item = document.createElement("li");
-                item.textContent = word;
-                item.onclick = () => { 
-                    document.getElementById("search").value = word; 
-                    list.innerHTML = "";
-                };
-                list.appendChild(item);
-            });
-        });
+          // Use the dynamic baseUrl instead of localhost
+          let response = await fetch(`${baseUrl}/search?query=${query}`);
+          let suggestions = await response.json();
 
-        async function addWord() {
-            const word = document.getElementById("newWord").value.trim();
-            if (!word) return;
+          let list = document.getElementById("suggestions");
+          list.innerHTML = "";
+          suggestions.forEach(word => {
+              let item = document.createElement("li");
+              item.textContent = word;
+              item.onclick = () => { 
+                  document.getElementById("search").value = word; 
+                  list.innerHTML = "";
+              };
+              list.appendChild(item);
+          });
+      });
 
-            let response = await fetch("http://localhost:3000/add-word", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ word })
-            });
+      async function addWord() {
+          const word = document.getElementById("newWord").value.trim();
+          if (!word) return;
 
-            let result = await response.json();
-            document.getElementById("status").textContent = result.message || "Error adding word!";
-            document.getElementById("newWord").value = ""; 
-        }
-    </script>
+          // Use the dynamic baseUrl for the add-word endpoint
+          let response = await fetch(`${baseUrl}/add-word`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ word })
+          });
+
+          let result = await response.json();
+          document.getElementById("status").textContent = result.message || "Error adding word!";
+          document.getElementById("newWord").value = ""; 
+      }
+  </script>
 </body>
 </html>
