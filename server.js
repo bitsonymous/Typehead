@@ -77,6 +77,7 @@ app.post("/add-word", async (req, res) => {
 });
 
 
+
 app.get("/recent-words", async (req, res) => {
     try {
         const recentWords = await Word.find().sort({ _id: -1 }).limit(5);
@@ -85,6 +86,8 @@ app.get("/recent-words", async (req, res) => {
         res.status(500).json({ error: "❌ Server error while fetching words" });
     }
 });
+
+console.log(`✅ Loaded ${words.length} words into Trie`);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
